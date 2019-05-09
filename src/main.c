@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <string.h>
 #include "help/help.h"
+#include "parse/parse.h"
 
 int main(int argc, char *argv[])
 {
-  FILE *makefile;
+  FILE *file;
   for (int i = 1; i < argc; i++)
   {
     if (!strcmp(argv[i], "-h"))
@@ -16,8 +17,8 @@ int main(int argc, char *argv[])
     {
       if (i+1 < argc)
       {
-        makefile = fopen(argv[i+1], "r");
-        if (!makefile)
+        file = fopen(argv[i+1], "r");
+        if (!file)
         {
           fprintf(stderr, "minimake: %s: No such file or directory\n",
             argv[i+1]);
@@ -32,16 +33,19 @@ int main(int argc, char *argv[])
       }
     }
   }
-  makefile = fopen("makefile", "r");
-  if (!makefile)
+  file = fopen("makefile", "r");
+  if (!file)
   {
-    makefile = fopen("Makefile", "r");
-    if (!makefile)
+    file = fopen("Makefile", "r");
+    if (!file)
     {
       fprintf(stderr, "minimake: *** No targets specified and no makefile \
         found. Stop.\n");
       return 1;
     }
   }
+  struct makefile *makefile;
+  if (!(makefile = create_struct(file)))
+    return 1;
   return 0;
 }
