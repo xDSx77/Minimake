@@ -1,7 +1,7 @@
 CC = gcc
 CFLAGS = -Werror -Wextra -Wall -pedantic -std=c99 -g
 
-SRC = src/main.c src/help/help.c
+SRC = src/main.c src/help/help.c src/parse/parse.c src/makefile/makefile.c
 BIN = minimake
 
 all: $(BIN)

@@ -16,8 +16,8 @@ void parse(struct makefile *makefile, FILE *file)
     {
       char **commands = split(line);
       if (commands != NULL)
-        for (int i = 0; commands[i] != NULL; i++)
-          puts(commands[i]);
+        /*for (int i = 0; commands[i] != NULL; i++)
+          puts(commands[i]);*/
       continue;
     }
     for (size_t i = 0; i < strlen(line); i++)
@@ -39,28 +39,40 @@ void parse(struct makefile *makefile, FILE *file)
 
 void add_var(struct makefile *makefile, char *line)
 {
-  char *name = strtok(line, "=");
-  puts(name);
-  puts("=");
+  char *name = strtok(line, "= ");
+  //puts(name);
+  //puts("=");
   char *data_l = strtok(NULL, "\n#");
   char **data = split(data_l);
   if (data != NULL)
-    for (int i = 0; data[i] != NULL; i++)
-      puts(data[i]);
-  makefile = makefile;
+  {
+    /*for (int i = 0; data[i] != NULL; i++)
+      puts(data[i]);*/
+    int i = 0;
+    while (makefile->vars[i]->name != NULL && makefile->vars[i]->data != NULL)
+      i++;
+    makefile->vars[i]->name = name;
+    makefile->vars[i]->data = data;
+  }
 }
 
 void add_rule(struct makefile *makefile, char *line)
 {
-  char *target = strtok(line, ":");
-  puts(target);
-  puts(":");
+  char *target = strtok(line, ": ");
+  //puts(target);
+  //puts(":");
   char *dependencies_l = strtok(NULL, "\n#");
   char **dependencies = split(dependencies_l);
   if (dependencies != NULL)
-    for (int i = 0; dependencies[i] != NULL; i++)
-      puts(dependencies[i]);
-  makefile = makefile;
+  {
+    /*for (int i = 0; dependencies[i] != NULL; i++)
+      puts(dependencies[i]);*/
+    int i = 0;
+    while (makefile->rules[i]->target != NULL && makefile->rules[i]->dependencies != NULL)
+      i++;
+    makefile->rules[i]->target = target;
+    //makefile->rules[i]->dependencies = dependencies;
+  }
 }
 
 char **split(char *data_l)
