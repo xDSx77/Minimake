@@ -4,7 +4,6 @@
 #include <string.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <limits.h>
 
 struct var
 {
@@ -15,7 +14,8 @@ struct var
 struct rule
 {
   char *target;
-  struct rule *dependencies;
+  char **dependencies_c;
+  struct rule **dependencies;
   char **commands;
 };
 

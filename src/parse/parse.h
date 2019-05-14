@@ -1,9 +1,12 @@
+#pragma once
 #include "../makefile/makefile.h"
 
-void parse(struct makefile *makefile, FILE *file);
+int parse(struct makefile *makefile, FILE *file);
 
-void add_var(struct makefile *makefile, char *line);
+int add_var(struct makefile *makefile, char *line);
 
-void add_rule(struct makefile *makefile, char *line);
+int add_rule(struct makefile *makefile, char *line, int *rule_idx);
+
+void add_dependencies(struct makefile *makefile);
 
 char **split(char *data);
