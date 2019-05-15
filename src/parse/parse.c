@@ -16,7 +16,12 @@ int parse(struct makefile *makefile, FILE *file)
     if (is_a_rule && line[0] == '\t')
     {
       char **commands = split(line);
-      makefile->rules[cur_rule_idx]->commands = commands;
+      for (int i = 0; commands[i] != NULL; i++)
+      {
+        makefile->rules[cur_rule_idx]->commands[i] = malloc(strlen(commands[i]));
+        strncpy(makefile->rules[cur_rule_idx]->commands[i], commands[i],
+          strlen(commands[i]));
+      }
       continue;
     }
     for (size_t i = 0; i < strlen(line); i++)
@@ -38,7 +43,6 @@ int parse(struct makefile *makefile, FILE *file)
       }
     }
   }
-  //add_dependencies(makefile);
   free(line);
   return 0;
 }
@@ -63,8 +67,7 @@ int add_var(struct makefile *makefile, char *line)
   {
     makefile->vars[i]->data[j] = malloc(strlen(data[j]));
     strncpy(makefile->vars[i]->data[j], data[j], strlen(data[j]));
-  }
-  free(data);
+  }free(data);
   return 0;
 }
 
@@ -95,26 +98,6 @@ int add_rule(struct makefile *makefile, char *line, int *rule_idx)
     makefile->rules[i]->dependencies_c = NULL;
   return 0;
 }
-
-/*void add_dependencies(struct makefile *makefile)
-{
-  for (int i = 0; makefile->rules[i] != NULL; i++)
-  {
-    if (makefile->rules[i]->dependencies_c)
-      for (int j = 0; makefile->rules[i]->dependencies_c[j] != NULL; j++)
-      {
-        for (int k = 0; makefile->rules[k] != NULL; k++)
-        {
-          if (makefile->rules[i]->target && makefile->rules[k]->target)
-            if (strcmp(makefile->rules[i]->target, makefile->rules[k]->target) &&
-              (strcmp(makefile->rules[i]->dependencies_c[j], makefile->rules[k]->target) == 0))
-            {
-              makefile->rules[i]->dependencies[j] = makefile->rules[k];
-            }
-        }
-      }
-  }
-}*/
 
 char **split(char *data_l)
 {

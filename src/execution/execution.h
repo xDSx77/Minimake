@@ -2,4 +2,6 @@
 #include <sys/wait.h>
 #include "../makefile/makefile.h"
 
-void execute(struct rule *rule);
+char *extract(char *command);
+
+void execute(struct makefile *makefile, struct rule *rule);
