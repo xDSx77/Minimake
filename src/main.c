@@ -19,9 +19,6 @@ void free_all(struct makefile *makefile, int lines)
       for (int j = 0; makefile->rules[i]->dependencies_c[j] != NULL; j++)
         free(makefile->rules[i]->dependencies_c[j]);
     free(makefile->rules[i]->dependencies_c);
-    for (int j = 0; j < lines; j++)
-      free(makefile->rules[i]->dependencies[j]);
-    free(makefile->rules[i]->dependencies);
     if (makefile->rules[i])
       free(makefile->rules[i]);
   }
@@ -33,6 +30,8 @@ void free_all(struct makefile *makefile, int lines)
 int main(int argc, char *argv[])
 {
   FILE *file;
+  char *file_name;
+  bool other_file = false;
   for (int i = 1; i < argc; i++)
   {
     if (!strcmp(argv[i], "-h"))
@@ -42,8 +41,10 @@ int main(int argc, char *argv[])
     }
     if (!strcmp(argv[i], "-f"))
     {
+      other_file = true;
       if (i+1 < argc)
       {
+        file_name = argv[i+1];
         file = fopen(argv[i+1], "r");
         if (!file)
         {
@@ -60,15 +61,20 @@ int main(int argc, char *argv[])
       }
     }
   }
-  file = fopen("makefile", "r");
-  if (!file)
+  if (!other_file)
   {
-    file = fopen("Makefile", "r");
+    file_name = "makefile";
+    file = fopen("makefile", "r");
     if (!file)
     {
-      fprintf(stderr, "minimake: *** No targets specified and no makefile \
-        found. Stop.\n");
-      return 1;
+      file_name = "Makefile";
+      file = fopen("Makefile", "r");
+      if (!file)
+      {
+        fprintf(stderr, "minimake: *** No targets specified and no makefile \
+          found. Stop.\n");
+        return 1;
+      }
     }
   }
   char line[5000];
@@ -82,17 +88,20 @@ int main(int argc, char *argv[])
   for (int i = 1; i < argc; i++)
     for (int j = 0; makefile->rules[j]->target != NULL; j++)
     {
-      if (strcmp(argv[i], makefile->rules[j]->target) == 0)
+      if (strncmp(argv[i], makefile->rules[j]->target,
+          strlen(makefile->rules[j]->target)) == 0)
       {
         execute(makefile, makefile->rules[j]);
         break;
       }
       else if (strcmp(argv[i], makefile->rules[j]->target) != 0
+        && strcmp(argv[i], "-f") != 0
+        && strcmp(argv[i], file_name) != 0
         && makefile->rules[j+1]->target == NULL)
         fprintf(stderr, "minimake: *** No rule to make target '%s'. Stop.\n",
           argv[i]);
     }
-  if (argc == 1)
+  if (argc == 1 || (argc == 3 && other_file))
     execute(makefile, makefile->rules[0]);
   free_all(makefile, lines);
   fclose(file);

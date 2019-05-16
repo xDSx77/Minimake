@@ -4,4 +4,10 @@
 
 char *extract(char *command);
 
-void execute(struct makefile *makefile, struct rule *rule);
+void reduce(char **commands, struct rule *rule);
+
+void replace(char **commands, struct makefile *makefile);
+
+char **separate(char **commands);
+
+int execute(struct makefile *makefile, struct rule *rule);

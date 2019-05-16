@@ -16,8 +16,6 @@ struct rule
 {
   char *target;
   char **dependencies_c;
-  struct rule **dependencies;
-  char *commands_c;
   char **commands;
 };
 
