@@ -7,23 +7,23 @@
 
 struct var
 {
-  char *name;
-  char *data_c;
-  char **data;
+    char *name;
+    char *data_c;
+    char **data;
 };
 
 struct rule
 {
-  char *target;
-  char **dependencies_c;
-  char **commands;
+    char *target;
+    char **dependencies_c;
+    char **commands;
 };
 
 
 struct makefile
 {
-  struct var **vars;
-  struct rule **rules;
+    struct var **vars;
+    struct rule **rules;
 };
 
 struct makefile *create_struct(FILE *file, int lines);
