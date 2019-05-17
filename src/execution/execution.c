@@ -12,9 +12,9 @@ char *extract(char *command)
 
 void reduce(char **commands, struct rule *rule)
 {
-    for (int i = 0; rule->commands[i] != NULL; i++)
+    for (int i = 0; i < rule->nb_commands; i++)
     {
-        commands[i] = malloc(strlen(rule->commands[i]));
+        commands[i] = calloc(strlen(rule->commands[i]) + 1, 1);
         int len = strlen(rule->commands[i]);
         if (strlen(rule->commands[i]) > 3 && rule->commands[i][0] == '$'
                 && (rule->commands[i][1] == '(' || rule->commands[i][1] == '{')
@@ -23,6 +23,7 @@ void reduce(char **commands, struct rule *rule)
         {
             char *extracted = extract(rule->commands[i]);
             strncpy(commands[i], extracted, strlen(extracted));
+            free(extracted);
         }
         else
             strncpy(commands[i], rule->commands[i], strlen(rule->commands[i]));
@@ -33,7 +34,7 @@ void replace(char **commands, struct makefile *makefile)
 {
     for (int i = 0; commands[i] != NULL; i++)
     {
-        for (int j = 0; makefile->vars[j]->name != NULL; j++)
+        for (int j = 0; j < makefile->nb_vars; j++)
         {
             if (strcmp(commands[i], makefile->vars[j]->name) == 0)
             {
@@ -53,7 +54,7 @@ void replace(char **commands, struct makefile *makefile)
 
 char **separate(char **commands)
 {
-    char **commands_exe = malloc(128 * sizeof(char *));
+    char **commands_exe = calloc(128, sizeof(char *));
     if (!commands_exe)
         return NULL;
     int idx_command = 0;
@@ -103,7 +104,7 @@ int execute(struct makefile *makefile, struct rule *rule)
     {
         if (rule->dependencies_c && rule->dependencies_c[0])
         {
-            for (int i = 0; makefile->rules[i]->target != NULL; i++)
+            for (int i = 0; i < makefile->nb_rules; i++)
             {
                 if (strcmp(rule->dependencies_c[0],
                             makefile->rules[i]->target) == 0)
@@ -120,7 +121,7 @@ int execute(struct makefile *makefile, struct rule *rule)
         }
         if (!exec_status)
         {
-            char **commands = malloc(1000 * sizeof(char *));
+            char **commands = calloc(1000, sizeof(char *));
             reduce(commands, rule);
             replace(commands, makefile);
             if (commands)

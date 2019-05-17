@@ -6,16 +6,22 @@ void free_all(struct makefile *makefile, int lines)
 {
     for (int i = 0; i < lines; i++)
     {
-        for (int j = 0; makefile->vars[i]->data[j] != NULL; j++)
+        for (int j = 0; j < makefile->vars[i]->nb_data; j++)
             free(makefile->vars[i]->data[j]);
+        if (i < makefile->nb_vars)
+            free(makefile->vars[i]->name);
         free(makefile->vars[i]->data);
         free(makefile->vars[i]);
-        for (int j = 0; makefile->rules[i]->commands[j] != NULL; j++)
+        for (int j = 0; j < makefile->rules[i]->nb_commands; j++)
             free(makefile->rules[i]->commands[j]);
         free(makefile->rules[i]->commands);
+        if (i < makefile->nb_rules)
+            free(makefile->rules[i]->target);
         if (makefile->rules[i]->dependencies_c)
-            for (int j = 0; makefile->rules[i]->dependencies_c[j] != NULL; j++)
+        {
+            for (int j = 0; j < makefile->rules[i]->nb_dependencies; j++)
                 free(makefile->rules[i]->dependencies_c[j]);
+        }
         free(makefile->rules[i]->dependencies_c);
         if (makefile->rules[i])
             free(makefile->rules[i]);
@@ -93,14 +99,22 @@ int main(int argc, char *argv[])
     rewind(file);
     struct makefile *makefile;
     if (!(makefile = create_struct(file, lines)))
+    {
+        fclose(file);
         return 1;
+    }
     for (int i = 1; i < argc; i++)
-        for (int j = 0; makefile->rules[j]->target != NULL; j++)
+        for (int j = 0; j < makefile->nb_rules; j++)
         {
-            if (strncmp(argv[i], makefile->rules[j]->target,
-                        strlen(makefile->rules[j]->target)) == 0)
+            if (makefile->rules[j]->target
+                    && strcmp(argv[i], makefile->rules[j]->target) == 0)
             {
-                execute(makefile, makefile->rules[j]);
+                if (execute(makefile, makefile->rules[j]))
+                {
+                    free_all(makefile, lines);
+                    fclose(file);
+                    return 2;
+                }
                 break;
             }
             if (strcmp(argv[i], makefile->rules[j]->target) != 0
@@ -110,7 +124,12 @@ int main(int argc, char *argv[])
                 notarget(argv[i]);
         }
     if (argc == 1 || (argc == 3 && other_file))
-        execute(makefile, makefile->rules[0]);
+        if (execute(makefile, makefile->rules[0]))
+        {
+            free_all(makefile, lines);
+            fclose(file);
+            return 2;
+        }
     free_all(makefile, lines);
     fclose(file);
     return 0;

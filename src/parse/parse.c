@@ -3,7 +3,7 @@
 int parse(struct makefile *makefile, FILE *file)
 {
     char *line = "";
-    size_t len = strlen(line);
+    size_t len = 0;
     bool is_a_rule = false;
     int cur_rule_idx = 0;
     while (getline(&line, &len, file) != -1)
@@ -18,13 +18,15 @@ int parse(struct makefile *makefile, FILE *file)
             if (line[1] == '#')
                 continue;
             char **commands = split(line);
-            for (int i = 0; commands[i] != NULL; i++)
+            for (int i = 0; commands[i]; i++)
             {
                 makefile->rules[cur_rule_idx]->commands[i] =
-                    malloc(strlen(commands[i]));
+                    calloc(strlen(commands[i]) + 1, 1);
                 strncpy(makefile->rules[cur_rule_idx]->commands[i], commands[i],
                         strlen(commands[i]));
+                makefile->rules[cur_rule_idx]->nb_commands++;
             }
+            free(commands);
             continue;
         }
         for (size_t i = 0; i < strlen(line); i++)
@@ -64,13 +66,17 @@ int add_var(struct makefile *makefile, char *line)
     int i = 0;
     while (makefile->vars[i]->name != NULL)
         i++;
-    makefile->vars[i]->name = malloc(strlen(name));
+    if (i >= makefile->nb_vars)
+        makefile->nb_vars = i + 1;
+    makefile->vars[i]->name = calloc(strlen(name) + 1, 1);
     strncpy(makefile->vars[i]->name, name, strlen(name));
     for (int j = 0; data[j] != NULL; j++)
     {
-        makefile->vars[i]->data[j] = malloc(strlen(data[j]));
+        makefile->vars[i]->data[j] = calloc(strlen(data[j]) + 1, 1);
         strncpy(makefile->vars[i]->data[j], data[j], strlen(data[j]));
-    }free(data);
+        makefile->vars[i]->nb_data++;
+    }
+    free(data);
     return 0;
 }
 
@@ -82,24 +88,25 @@ int add_rule(struct makefile *makefile, char *line, int *rule_idx)
     char *dependencies_l = strtok(NULL, "\n#");
     char **dependencies = split(dependencies_l);
     int i = 0;
-    while (makefile->rules[i]->target != NULL)
+    while (i < makefile->nb_rules)
         i++;
     *rule_idx = i;
-    makefile->rules[i]->target = malloc(strlen(target));
+    if (i >= makefile->nb_rules)
+        makefile->nb_rules = i + 1;
+    makefile->rules[i]->target = calloc(strlen(target) + 1, 1);
     strncpy(makefile->rules[i]->target, target, strlen(target));
     if (dependencies != NULL)
     {
         for (int j = 0; dependencies[j] != NULL; j++)
         {
             makefile->rules[i]->dependencies_c[j] =
-                malloc(strlen(dependencies[j]));
+                calloc(strlen(dependencies[j]) + 1, 1);
             strncpy(makefile->rules[i]->dependencies_c[j], dependencies[j],
                     strlen(dependencies[j]));
+            makefile->rules[i]->nb_dependencies++;
         }
         free(dependencies);
     }
-    else
-        makefile->rules[i]->dependencies_c = NULL;
     return 0;
 }
 
@@ -107,7 +114,7 @@ char **split(char *data_l)
 {
     if (data_l == NULL)
         return NULL;
-    char **data = malloc(strlen(data_l) * sizeof(char*));
+    char **data = malloc(strlen(data_l) * sizeof(char *));
     int i = 0;
     char *token = strtok(data_l, " \t");
     while (token)
@@ -118,5 +125,6 @@ char **split(char *data_l)
         token = strtok(NULL, " \t\n");
         i++;
     }
+    data[i] = NULL;
     return data;
 }

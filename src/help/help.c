@@ -26,7 +26,7 @@ void noargument(char *arg)
 
 void nomakefile(void)
 {
-    fprintf(stderr, "minimake: *** No targets specified and no makefile %s",
+    fprintf(stderr, "minimake: *** No targets specified and no makefile "
             "found.  Stop.\n");
 }
 

@@ -13,6 +13,7 @@ struct var
     char *name;
     char *data_c;
     char **data;
+    int nb_data;
 };
 
 struct rule
@@ -20,6 +21,8 @@ struct rule
     char *target;
     char **dependencies_c;
     char **commands;
+    int nb_dependencies;
+    int nb_commands;
 };
 
 
@@ -27,6 +30,8 @@ struct makefile
 {
     struct var **vars;
     struct rule **rules;
+    int nb_vars;
+    int nb_rules;
 };
 
 struct makefile *create_struct(FILE *file, int lines);
