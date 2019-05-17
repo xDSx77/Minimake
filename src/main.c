@@ -1,8 +1,6 @@
-#include <stdio.h>
-#include <string.h>
 #include "help/help.h"
-#include "makefile/makefile.h"
 #include "execution/execution.h"
+#include "makefile/makefile.h"
 
 void free_all(struct makefile *makefile, int lines)
 {
@@ -27,11 +25,8 @@ void free_all(struct makefile *makefile, int lines)
     free(makefile);
 }
 
-int main(int argc, char *argv[])
+int check_args(int argc, char *argv[], FILE **file, char **name, bool *other)
 {
-    FILE *file;
-    char *file_name;
-    bool other_file = false;
     for (int i = 1; i < argc; i++)
     {
         if (!strcmp(argv[i], "-h"))
@@ -41,47 +36,56 @@ int main(int argc, char *argv[])
         }
         if (!strcmp(argv[i], "-f"))
         {
-            other_file = true;
-            if (i+1 < argc)
+            *other = true;
+            if (i + 1 < argc)
             {
-                file_name = argv[i+1];
-                file = fopen(argv[i+1], "r");
+                *name = argv[i + 1];
+                *file = fopen(*name, "re");
                 if (!file)
                 {
-                    fprintf(stderr, "minimake: %s: No such file or directory\n",
-                            argv[i+1]);
-                    fprintf(stderr, "%s%s%s",
-                            "minimake: *** No rule to make target '", argv[i+1],
-                            "'.  Stop.\n");
+                    nofile(argv[i + 1]);
+                    notarget(argv[i + 1]);
                     return 1;
                 }
             }
             else
             {
-                fprintf(stderr, "%s%c%s",
-                        "minimake: option requires an argument -- '",
-                        argv[i][1], "'\n");
+                notarget(argv[i] + 1);
                 help();
                 return 1;
             }
         }
     }
-    if (!other_file)
+    return 0;
+}
+
+int open_default(FILE **file, char **name)
+{
+    *name = "makefile";
+    *file = fopen(*name, "re");
+    if (!*file)
     {
-        file_name = "makefile";
-        file = fopen("makefile", "r");
-        if (!file)
+        *name = "Makefile";
+        *file = fopen(*name, "re");
+        if (!*file)
         {
-            file_name = "Makefile";
-            file = fopen("Makefile", "r");
-            if (!file)
-            {
-                fprintf(stderr, "%s%s", "minimake: *** No targets specified ",
-                        "no makefile found.  Stop.\n");
-                return 1;
-            }
+            nomakefile();
+            return 1;
         }
     }
+    return 0;
+}
+
+int main(int argc, char *argv[])
+{
+    FILE *file = NULL;
+    char *file_name = "";
+    bool other_file = false;
+    if (check_args(argc, argv, &file, &file_name, &other_file))
+        return 1;
+    if (!other_file)
+        if (open_default(&file, &file_name))
+            return 1;
     char line[5000];
     int lines = 0;
     while (fgets(line, sizeof(line), file) != NULL)
@@ -99,13 +103,11 @@ int main(int argc, char *argv[])
                 execute(makefile, makefile->rules[j]);
                 break;
             }
-            else if (strcmp(argv[i], makefile->rules[j]->target) != 0
+            if (strcmp(argv[i], makefile->rules[j]->target) != 0
                     && strcmp(argv[i], "-f") != 0
                     && strcmp(argv[i], file_name) != 0
-                    && makefile->rules[j+1]->target == NULL)
-                fprintf(stderr, "%s%s%s",
-                        "minimake: *** No rule to make target '", argv[i],
-                        "'.  Stop.\n");
+                    && makefile->rules[j + 1]->target == NULL)
+                notarget(argv[i]);
         }
     if (argc == 1 || (argc == 3 && other_file))
         execute(makefile, makefile->rules[0]);

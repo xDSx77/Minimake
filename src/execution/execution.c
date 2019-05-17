@@ -1,11 +1,12 @@
 #include "execution.h"
 #include "../parse/parse.h"
+#include "../help/help.h"
 
 char *extract(char *command)
 {
     char *extract = malloc(sizeof(char *));
     for (size_t i = 0; i < strlen(command) - 3; i++)
-        extract[i] = command[i+2];
+        extract[i] = command[i + 2];
     return extract;
 }
 
@@ -17,8 +18,8 @@ void reduce(char **commands, struct rule *rule)
         int len = strlen(rule->commands[i]);
         if (strlen(rule->commands[i]) > 3 && rule->commands[i][0] == '$'
                 && (rule->commands[i][1] == '(' || rule->commands[i][1] == '{')
-                && (rule->commands[i][len-1] == ')'
-                    || rule->commands[i][len-1] == '}'))
+                && (rule->commands[i][len - 1] == ')'
+                    || rule->commands[i][len - 1] == '}'))
         {
             char *extracted = extract(rule->commands[i]);
             strncpy(commands[i], extracted, strlen(extracted));
@@ -41,7 +42,7 @@ void replace(char **commands, struct makefile *makefile)
                 {
                     strncat(commands[i], makefile->vars[j]->data[k],
                             strlen(makefile->vars[j]->data[k]));
-                    if (makefile->vars[j]->data[k+1] != NULL)
+                    if (makefile->vars[j]->data[k + 1] != NULL)
                         strcat(commands[i], " ");
                 }
                 break;
@@ -110,12 +111,9 @@ int execute(struct makefile *makefile, struct rule *rule)
                     exec_status = execute(makefile, makefile->rules[i]);
                     break;
                 }
-                if (makefile->rules[i+1]->target == NULL)
+                if (makefile->rules[i + 1]->target == NULL)
                 {
-                    fprintf(stderr, "%s%s%s%s%s",
-                            "minimake: *** No rule to make target '",
-                            rule->dependencies_c[0], "', needed by '",
-                            rule->target, "'. Stop.\n");
+                    notarget_dependency(rule->dependencies_c[0], rule->target);
                     return 2;
                 }
             }
@@ -130,7 +128,7 @@ int execute(struct makefile *makefile, struct rule *rule)
                 for (int i = 0; commands[i] != NULL; i++)
                 {
                     printf("%s", commands[i]);
-                    if (commands[i+1] != NULL)
+                    if (commands[i + 1] != NULL)
                         printf(" ");
                 }
                 printf("\n");

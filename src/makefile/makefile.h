@@ -1,3 +1,6 @@
+#ifndef MAKEFILE_H
+#define MAKEFILE_H
+
 #pragma once
 #define _POSIX_C_SOURCE 200809L
 #include <stdio.h>
@@ -27,3 +30,5 @@ struct makefile
 };
 
 struct makefile *create_struct(FILE *file, int lines);
+
+#endif /* ! MAKEFILE_H */
