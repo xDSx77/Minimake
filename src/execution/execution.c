@@ -124,6 +124,7 @@ int execute(struct makefile *makefile, struct rule *rule)
             char **commands = calloc(1000, sizeof(char *));
             reduce(commands, rule);
             replace(commands, makefile);
+            //char **commands_exe = separate(commands);
             if (commands)
             {
                 for (int i = 0; commands[i] != NULL; i++)
@@ -134,6 +135,9 @@ int execute(struct makefile *makefile, struct rule *rule)
                 }
                 printf("\n");
                 execvp(commands[0], commands);
+                for (int i = 0; commands[i] != NULL; i++)
+                    free(commands[i]);
+                free(commands);
                 return 0;
             }
         }

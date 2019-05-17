@@ -15,9 +15,8 @@ int parse(struct makefile *makefile, FILE *file)
         }
         if (is_a_rule && line[0] == '\t')
         {
-            if (line[1] == '#')
-                continue;
             char **commands = split(line);
+            makefile->rules[cur_rule_idx]->nb_commands = 0;
             for (int i = 0; commands[i]; i++)
             {
                 makefile->rules[cur_rule_idx]->commands[i] =
@@ -119,8 +118,6 @@ char **split(char *data_l)
     char *token = strtok(data_l, " \t");
     while (token)
     {
-        if (token[0] == '#')
-            break;
         data[i] = token;
         token = strtok(NULL, " \t\n");
         i++;
