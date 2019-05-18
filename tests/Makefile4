@@ -1,0 +1,9 @@
+all: minimake
+
+minimake:
+	gcc -Werror -Wextra -Wall -pedantic -std=c99 -g -o minimake src/main.c src/help/help.c src/parse/parse.c src/makefile/makefile.c src/execution/execution.c
+
+clean:
+	rm minimake
+
+.PHONY: clean

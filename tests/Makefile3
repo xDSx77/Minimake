@@ -1,0 +1,9 @@
+# all rule
+all:
+	echo "a line" #with a comment
+	# just a comment
+
+test: echo
+
+echo:
+

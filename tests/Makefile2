@@ -1,0 +1,7 @@
+all: foo.o
+
+foo:
+	gcc -o foo foo.o
+
+foo.o: foo.c
+	gcc -c foo.c
