@@ -20,9 +20,10 @@ struct rule
 {
     char *target;
     char **dependencies_c;
-    char **commands;
+    char ***commands;
+    int *nb_commands;
+    int lines;
     int nb_dependencies;
-    int nb_commands;
 };
 
 

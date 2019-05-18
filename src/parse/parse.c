@@ -5,7 +5,7 @@ int parse(struct makefile *makefile, FILE *file)
     char *line = "";
     size_t len = 0;
     bool is_a_rule = false;
-    int cur_rule_idx = 0;
+    int rule_idx = 0;
     while (getline(&line, &len, file) != -1)
     {
         if (is_a_rule && line[0] != '\t')
@@ -16,15 +16,17 @@ int parse(struct makefile *makefile, FILE *file)
         if (is_a_rule && line[0] == '\t')
         {
             char **commands = split(line);
-            makefile->rules[cur_rule_idx]->nb_commands = 0;
+            struct rule *cur_rule = makefile->rules[rule_idx];
+            cur_rule->nb_commands[cur_rule->lines] = 0;
             for (int i = 0; commands[i]; i++)
             {
-                makefile->rules[cur_rule_idx]->commands[i] =
+                cur_rule->commands[cur_rule->lines][i] =
                     calloc(strlen(commands[i]) + 1, 1);
-                strncpy(makefile->rules[cur_rule_idx]->commands[i], commands[i],
-                        strlen(commands[i]));
-                makefile->rules[cur_rule_idx]->nb_commands++;
+                strncpy(cur_rule->commands[cur_rule->lines][i],
+                        commands[i], strlen(commands[i]));
+                cur_rule->nb_commands[cur_rule->lines]++;
             }
+            cur_rule->lines++;
             free(commands);
             continue;
         }
@@ -41,7 +43,7 @@ int parse(struct makefile *makefile, FILE *file)
             }
             else if (line[i] == ':')
             {
-                if (add_rule(makefile, line, &cur_rule_idx))
+                if (add_rule(makefile, line, &rule_idx))
                     return 1;
                 is_a_rule = true;
             }

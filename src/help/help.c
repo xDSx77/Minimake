@@ -36,3 +36,8 @@ void notarget_dependency(char *dependency, char *target)
     fprintf(stderr, "minimake: *** No rule to make target '%s', %s%s%s",
             dependency, "needed by '", target, "'.  Stop.\n");
 }
+
+void nothing(char *target)
+{
+    fprintf(stderr, "minimake: Nothing to be done for '%s'.\n", target);
+}

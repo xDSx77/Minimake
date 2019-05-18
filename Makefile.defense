@@ -1,15 +1,13 @@
-CC = gcc
-CFLAGS = -Werror -Wextra -Wall -pedantic -std=c99 -g
+CC= gcc
+CFLAGS= -Werror -Wextra -Wall -pedantic -std=c99 -g
 
-SRC = src/main.c src/help/help.c
-BIN = minimake
+SRC= src/main.c src/help/help.c src/parse/parse.c src/makefile/makefile.c src/execution/execution.c
+BIN= minimake2
 
-all: $(BIN)
+all: minimake2
 
-$(BIN): $(SRC)
+minimake2:
 	$(CC) $(CFLAGS) -o $(BIN) $(SRC)
 
 clean:
-	$(RM) $(BIN)
-
-.PHONY: all clean
+	rm $(BIN)

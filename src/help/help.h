@@ -15,4 +15,6 @@ void nomakefile(void);
 
 void notarget_dependency(char *dependency, char *target);
 
+void nothing(char *target);
+
 #endif /* ! HELP_H */

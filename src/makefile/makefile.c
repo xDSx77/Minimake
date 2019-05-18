@@ -17,9 +17,12 @@ struct makefile *create_struct(FILE *file, int lines)
     {
         makefile->rules[i] = calloc(1, sizeof(struct rule));
         makefile->rules[i]->dependencies_c = calloc(SIZEBUF, sizeof(char *));
-        makefile->rules[i]->commands = calloc(SIZEBUF, sizeof(char *));
+        makefile->rules[i]->commands = calloc(lines * SIZEBUF, sizeof(char *));
+        for (int j = 0; j < lines; j++)
+            makefile->rules[i]->commands[j] = calloc(SIZEBUF, sizeof(char *));
+        makefile->rules[i]->lines = 0;
         makefile->rules[i]->nb_dependencies = 0;
-        makefile->rules[i]->nb_commands = 0;
+        makefile->rules[i]->nb_commands = calloc(SIZEBUF, sizeof(int));
     }
     makefile->nb_vars = 0;
     makefile->nb_rules = 0;

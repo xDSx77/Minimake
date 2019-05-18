@@ -4,29 +4,30 @@
 
 char *extract(char *command)
 {
-    char *extract = malloc(sizeof(char *));
+    char *extract = calloc(1, sizeof(char *));
     for (size_t i = 0; i < strlen(command) - 3; i++)
         extract[i] = command[i + 2];
     return extract;
 }
 
-void reduce(char **commands, struct rule *rule)
+void reduce(char **commands, struct rule *rule, int rule_idx)
 {
-    for (int i = 0; i < rule->nb_commands; i++)
+    for (int i = 0; i < rule->nb_commands[rule_idx]; i++)
     {
-        commands[i] = calloc(strlen(rule->commands[i]) + 1, 1);
-        int len = strlen(rule->commands[i]);
-        if (strlen(rule->commands[i]) > 3 && rule->commands[i][0] == '$'
-                && (rule->commands[i][1] == '(' || rule->commands[i][1] == '{')
-                && (rule->commands[i][len - 1] == ')'
-                    || rule->commands[i][len - 1] == '}'))
+        int len = strlen(rule->commands[rule_idx][i]);
+        commands[i] = calloc(128, 1);
+        if (len > 3 && rule->commands[rule_idx][i][0] == '$'
+                && (rule->commands[rule_idx][i][1] == '('
+                    || rule->commands[rule_idx][i][1] == '{')
+                && (rule->commands[rule_idx][i][len - 1] == ')'
+                    || rule->commands[rule_idx][i][len - 1] == '}'))
         {
-            char *extracted = extract(rule->commands[i]);
+            char *extracted = extract(rule->commands[rule_idx][i]);
             strncpy(commands[i], extracted, strlen(extracted));
             free(extracted);
         }
         else
-            strncpy(commands[i], rule->commands[i], strlen(rule->commands[i]));
+            strncpy(commands[i], rule->commands[rule_idx][i], len);
     }
 }
 
@@ -74,15 +75,16 @@ char **separate(char **commands)
             for (int j = 0; separate[j] != NULL; j++)
             {
                 size_t len = strlen(separate[j]);
-                commands_exe[idx_command] = malloc(len);
+                commands_exe[idx_command] = calloc(len + 1, 1);
                 strncpy(commands_exe[idx_command], separate[j], len);
                 idx_command++;
             }
+            free(separate);
         }
         else
         {
             size_t len = strlen(commands[i]);
-            commands_exe[idx_command] = malloc(len);
+            commands_exe[idx_command] = calloc(len + 1, 1);
             strncpy(commands_exe[idx_command], commands[i], len);
             idx_command++;
         }
@@ -98,7 +100,7 @@ int execute(struct makefile *makefile, struct rule *rule)
     if (child_pid == -1)
     {
         perror("fork");
-        exit(1);
+        exit(2);
     }
     if (child_pid == 0)
     {
@@ -121,28 +123,47 @@ int execute(struct makefile *makefile, struct rule *rule)
         }
         if (!exec_status)
         {
-            char **commands = calloc(1000, sizeof(char *));
-            reduce(commands, rule);
-            replace(commands, makefile);
-            //char **commands_exe = separate(commands);
-            if (commands)
+            for (int i = 0; i < rule->lines; i++)
             {
-                for (int i = 0; commands[i] != NULL; i++)
+                char **commands = calloc(1000, sizeof(char *));
+                reduce(commands, rule, i);
+                replace(commands, makefile);
+                char **commands_exe = separate(commands);
+                if (commands_exe)
                 {
-                    printf("%s", commands[i]);
-                    if (commands[i + 1] != NULL)
-                        printf(" ");
+                    print(commands_exe);
+                    int status_cmd;
+                    pid_t child_pid_cmd = fork();
+                    if (child_pid_cmd == -1)
+                    {
+                        perror("fork");
+                        exit(2);
+                    }
+                    if (child_pid_cmd == 0)
+                        execvp(commands_exe[0], commands_exe);
+                    waitpid(child_pid_cmd, &status_cmd, WUNTRACED);
                 }
-                printf("\n");
-                execvp(commands[0], commands);
-                for (int i = 0; commands[i] != NULL; i++)
+                for (int i = 0; commands[i]; i++)
                     free(commands[i]);
                 free(commands);
-                return 0;
+                for (int i = 0; commands_exe[i]; i++)
+                    free(commands_exe[i]);
+                free(commands_exe);
             }
         }
         return 2;
     }
     waitpid(child_pid, &status, WUNTRACED);
-    return 2;
+    return status;
+}
+
+void print(char **commands)
+{
+    for (int i = 0; commands[i]; i++)
+    {
+        printf("%s", commands[i]);
+        if (commands[i + 1] != NULL)
+            printf(" ");
+    }
+    printf("\n");
 }
